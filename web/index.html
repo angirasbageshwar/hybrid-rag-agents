@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Network</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f6f4;
+    --surface: #ffffff;
+    --surface-2: #fafaf8;
+    --text: #18181b;
+    --muted: #6b6b70;
+    --faint: #9a9aa0;
+    --border: #e7e6e2;
+    --accent: #2b59d9;
+    --accent-soft: #eaf0fd;
+    --good: #18794e;
+    --good-soft: #e7f5ee;
+    --warn: #a35c00;
+    --warn-soft: #fdf3e2;
+    --bad: #b42318;
+    --bad-soft: #fdecea;
+    --shadow: 0 1px 2px rgba(16,16,20,.04), 0 4px 16px rgba(16,16,20,.04);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111113;
+      --surface: #19191c;
+      --surface-2: #1e1e22;
+      --text: #ececee;
+      --muted: #a0a0a8;
+      --faint: #74747c;
+      --border: #2a2a2f;
+      --accent: #7c9cff;
+      --accent-soft: #1f2741;
+      --good: #4cc38a;
+      --good-soft: #15291f;
+      --warn: #f0a640;
+      --warn-soft: #2d2213;
+      --bad: #ff7a6e;
+      --bad-soft: #301917;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, textarea { font: inherit; color: inherit; }
+  a { color: var(--accent); }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 1180px; margin: 0 auto; padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -.01em; }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--accent);
+    display: grid; place-items: center; color: #fff;
+  }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+  .dot.ok { background: var(--good); }
+  .dot.down { background: var(--bad); }
+
+  /* ── Layout ── */
+  .layout {
+    max-width: 1180px; margin: 0 auto; padding: 40px 24px 80px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; align-items: start;
+  }
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: 1fr; padding: 24px 16px 64px; }
+    .topbar-inner { padding: 12px 16px; }
+  }
+
+  h1 { font-size: 30px; line-height: 1.2; letter-spacing: -.025em; margin: 0 0 8px; font-weight: 700; }
+  .lede { color: var(--muted); margin: 0 0 24px; max-width: 60ch; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+
+  /* ── Ask box ── */
+  .ask { padding: 6px; }
+  .ask:focus-within { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+  .ask textarea {
+    width: 100%; border: 0; outline: 0; resize: none; background: transparent;
+    padding: 12px 14px 4px; min-height: 84px; font-size: 16px;
+  }
+  .ask textarea::placeholder { color: var(--faint); }
+  .ask-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 6px 6px 14px; }
+  .hint { font-size: 12.5px; color: var(--faint); }
+  kbd {
+    font: 500 11px/1 Inter, sans-serif; padding: 3px 5px; border-radius: 5px;
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--muted);
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 600; font-size: 14px;
+    background: var(--accent); color: #fff; transition: opacity .15s, transform .05s;
+  }
+  .btn:hover { opacity: .92; }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    padding: 6px 10px; font-weight: 500; font-size: 13px;
+  }
+  .btn-ghost:hover { color: var(--text); opacity: 1; }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .chip {
+    border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+    border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; text-align: left;
+    transition: color .15s, border-color .15s;
+  }
+  .chip:hover { color: var(--text); border-color: var(--faint); }
+
+  /* ── Result ── */
+  #result { margin-top: 28px; }
+  .result-head {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500;
+    padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .badge.good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+
+  .brief { padding: 8px 24px 20px; }
+  .brief h1, .brief h2, .brief h3 { letter-spacing: -.015em; line-height: 1.3; }
+  .brief h1 { font-size: 21px; margin: 18px 0 6px; }
+  .brief h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    margin: 26px 0 8px; font-weight: 600;
+  }
+  .brief h3 { font-size: 16px; margin: 18px 0 6px; }
+  .brief p { margin: 8px 0; }
+  .brief ul, .brief ol { margin: 8px 0; padding-left: 20px; }
+  .brief li { margin: 6px 0; }
+  .brief li::marker { color: var(--faint); }
+  .brief strong { font-weight: 600; }
+  .brief code { font-size: 13px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+
+  .cite {
+    display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px;
+    margin: 0 1px; border-radius: 5px; vertical-align: 2px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 11px; font-weight: 600; text-decoration: none; line-height: 1;
+  }
+  .cite:hover { background: var(--accent); color: #fff; }
+
+  .section { border-top: 1px solid var(--border); padding: 18px 24px 22px; }
+  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .sources { display: grid; gap: 10px; }
+  .source {
+    display: grid; grid-template-columns: 24px minmax(0,1fr); gap: 12px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2);
+    scroll-margin-top: 90px; transition: border-color .3s, box-shadow .3s;
+  }
+  .source.flash { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .source-num {
+    width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600;
+  }
+  .source-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+  .source-name { font-weight: 600; overflow-wrap: anywhere; }
+  .source-tag { color: var(--faint); font-size: 12px; }
+  .source-text {
+    color: var(--muted); font-size: 13.5px; margin-top: 4px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .source a { font-size: 12.5px; text-decoration: none; margin-left: auto; }
+  .source a:hover { text-decoration: underline; }
+
+  details.verify summary { cursor: pointer; font-size: 13px; color: var(--muted); font-weight: 500; }
+  details.verify pre {
+    white-space: pre-wrap; font: 13px/1.6 Inter, sans-serif; color: var(--muted);
+    margin: 10px 0 0; background: var(--surface-2); padding: 12px 14px; border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  /* loading */
+  .loading { padding: 24px; }
+  .loading-label { display: flex; align-items: center; gap: 10px; font-weight: 500; margin-bottom: 18px; }
+  .skeleton { height: 12px; border-radius: 6px; background: var(--surface-2); margin: 10px 0; position: relative; overflow: hidden; }
+  .skeleton::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--border) 70%, transparent), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%; flex: none;
+    border: 2px solid var(--accent-soft); border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error { padding: 16px 20px; background: var(--bad-soft); color: var(--bad); border-color: transparent; display: flex; gap: 10px; }
+
+  /* ── Sidebar ── */
+  aside { display: grid; gap: 20px; position: sticky; top: 84px; }
+  @media (max-width: 920px) { aside { position: static; } }
+  .panel { padding: 18px 18px 14px; }
+  .panel-title { font-size: 13px; font-weight: 600; margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center; }
+  .panel-title span { font-weight: 400; color: var(--faint); font-size: 12px; }
+
+  .steps { list-style: none; margin: 0; padding: 0; }
+  .step { display: grid; grid-template-columns: 26px 1fr; gap: 10px; position: relative; padding-bottom: 16px; }
+  .step:last-child { padding-bottom: 0; }
+  .step:not(:last-child)::before {
+    content: ""; position: absolute; left: 12px; top: 28px; bottom: 2px; width: 2px; background: var(--border);
+  }
+  .step.done:not(:last-child)::before { background: color-mix(in srgb, var(--good) 45%, var(--border)); }
+  .step-icon {
+    width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+    border: 2px solid var(--border); background: var(--surface); color: var(--faint);
+    font-size: 11px; font-weight: 600;
+  }
+  .step.active .step-icon { border-color: var(--accent); color: var(--accent); }
+  .step.done .step-icon { border-color: var(--good); background: var(--good); color: #fff; }
+  .step.skipped .step-icon { border-style: dashed; }
+  .step-name { font-weight: 600; font-size: 14px; line-height: 26px; }
+  .step-desc { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  .step-note { font-size: 12px; color: var(--accent); margin-top: 2px; }
+  .step.done .step-note { color: var(--good); }
+  .step.skipped .step-note { color: var(--faint); }
+  .step.revise .step-note { color: var(--warn); }
+
+  .docs { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .doc {
+    display: flex; align-items: center; gap: 10px; padding: 8px; margin: 0 -8px; border-radius: 8px;
+    text-decoration: none; color: var(--text); font-size: 13.5px;
+  }
+  .doc:hover { background: var(--surface-2); }
+  .doc-icon { width: 30px; height: 30px; border-radius: 7px; background: var(--bad-soft); color: var(--bad); display: grid; place-items: center; flex: none; font-size: 9px; font-weight: 700; }
+  .doc-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .doc-sub { font-size: 12px; color: var(--faint); }
+  .muted-note { font-size: 12.5px; color: var(--faint); margin: 12px 0 0; line-height: 1.5; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7.5l3 8M16 7.5l-3 8M8.5 6h7"/></svg>
+      </div>
+      Knowledge Network
+    </div>
+    <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Connecting…</span></div>
+  </div>
+</header>
+
+<main class="layout">
+  <section>
+    <h1>Ask your company documents</h1>
+    <p class="lede">Three AI agents research your PDFs, check the facts and verify every sentence before you get an executive briefing with sources.</p>
+
+    <form class="card ask" id="askForm">
+      <textarea id="question" rows="3" placeholder="e.g. What is ACME's liability cap, and how did Autonomous Systems perform in Q3?" aria-label="Your question"></textarea>
+      <div class="ask-foot">
+        <span class="hint"><kbd>Enter</kbd> to ask · <kbd>Shift</kbd>+<kbd>Enter</kbd> new line</span>
+        <button class="btn" id="askBtn" type="submit">
+          Generate briefing
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </form>
+
+    <div class="examples" id="examples">
+      <button class="chip" type="button">Summarize ACME's Q3 2025 revenue by segment</button>
+      <button class="chip" type="button">What are the key risks in the Master Services Agreement?</button>
+      <button class="chip" type="button">What service credits apply if uptime drops below 99%?</button>
+      <button class="chip" type="button">How did Autonomous Systems perform and what drove costs?</button>
+    </div>
+
+    <div id="result"></div>
+  </section>
+
+  <aside>
+    <div class="card panel">
+      <div class="panel-title">Agent pipeline <span id="timer"></span></div>
+      <ol class="steps" id="steps">
+        <li class="step" data-node="researcher">
+          <div class="step-icon">1</div>
+          <div><div class="step-name">Researcher</div><div class="step-desc">Hybrid search across your documents, writes a cited draft</div><div class="step-note"></div></div>
+        </li>
+        <li class="step" data-node="fact_checker">
+          <div class="step-icon">2</div>
+          <div><div class="step-name">Fact-checker</div><div class="step-desc">Verifies key claims against the live web</div><div class="step-note"></div></div>
+        </li>
+        <li class="step" data-node="critic">
+          <div class="step-icon">3</div>
+          <div><div class="step-name">Critic</div><div class="step-desc">Checks every sentence is supported; sends it back if not</div><div class="step-note"></div></div>
+        </li>
+        <li class="step" data-node="finalize">
+          <div class="step-icon">4</div>
+          <div><div class="step-name">Briefing</div><div class="step-desc">Writes the final executive summary</div><div class="step-note"></div></div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="card panel">
+      <div class="panel-title">Knowledge base <span id="docCount"></span></div>
+      <ul class="docs" id="docs"></ul>
+      <p class="muted-note" id="infoNote"></p>
+    </div>
+  </aside>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CHECK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
+let info = null;
+
+/* ── Server info + documents ── */
+async function loadInfo() {
+  try {
+    const res = await fetch("/info");
+    info = await res.json();
+    $("#statusDot").className = "dot ok";
+    $("#statusText").textContent = `Online · ${info.model}`;
+    $("#docCount").textContent = `${info.documents.length} file${info.documents.length === 1 ? "" : "s"}`;
+    $("#docs").innerHTML = info.documents.map((d) => `
+      <li><a class="doc" href="/documents/${encodeURIComponent(d.name)}" target="_blank" rel="noopener">
+        <span class="doc-icon">PDF</span>
+        <span style="min-width:0"><div class="doc-name">${esc(prettyName(d.name))}</div><div class="doc-sub">${d.chunks} indexed passages</div></span>
+      </a></li>`).join("") || `<li class="doc-sub">No documents indexed yet.</li>`;
+    $("#infoNote").textContent = info.web_verification
+      ? "Live web verification is on."
+      : "Live web verification is off. Add a TAVILY_API_KEY to enable it.";
+  } catch {
+    $("#statusDot").className = "dot down";
+    $("#statusText").textContent = "Server offline";
+  }
+}
+const prettyName = (n) => n.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\bAcme\b/g, "ACME").replace(/\bQ(\d)/g, "Q$1");
+
+/* ── Pipeline display ── */
+const steps = () => [...document.querySelectorAll(".step")];
+function resetSteps() {
+  steps().forEach((el, i) => {
+    el.className = "step";
+    el.querySelector(".step-icon").textContent = i + 1;
+    el.querySelector(".step-note").textContent = "";
+  });
+}
+function setStep(node, state, note) {
+  const el = document.querySelector(`.step[data-node="${node}"]`);
+  if (!el) return;
+  el.className = `step ${state}`;
+  const icon = el.querySelector(".step-icon");
+  if (state === "active") icon.innerHTML = '<span class="spinner" style="width:12px;height:12px"></span>';
+  else if (state === "done") icon.innerHTML = CHECK;
+  else if (state.includes("skipped")) icon.innerHTML = "–";
+  if (note !== undefined) el.querySelector(".step-note").textContent = note;
+}
+const ACTIVE_LABEL = {
+  researcher: "Researcher is reading your documents…",
+  fact_checker: "Fact-checker is verifying claims…",
+  critic: "Critic is checking every sentence…",
+  finalize: "Writing the executive briefing…",
+};
+
+/* ── Minimal, safe Markdown → HTML ── */
+function md(src, citeFor) {
+  const inline = (t) => esc(t)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, "$1<em>$2</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\[([0-9a-f]{8,}(?:\s*[,;]\s*[0-9a-f]{8,})*)\]/g, (_, ids) =>
+      ids.split(/\s*[,;]\s*/).map(citeFor).join(""));
+  const out = [];
+  let list = null;
+  const close = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of src.split(/\r?\n/)) {
+    const line = raw.trimEnd();
+    let m;
+    if (!line.trim()) { close(); continue; }
+    if ((m = line.match(/^(#{1,4})\s+(.*)/))) { close(); const l = Math.min(m[1].length, 3); out.push(`<h${l}>${inline(m[2])}</h${l}>`); continue; }
+    if ((m = line.match(/^\s*[-*•]\s+(.*)/))) { if (list !== "ul") { close(); out.push("<ul>"); list = "ul"; } out.push(`<li>${inline(m[1])}</li>`); continue; }
+    if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== "ol") { close(); out.push("<ol>"); list = "ol"; } out.push(`<li>${inline(m[1])}</li>`); continue; }
+    if (/^\s*(-{3,}|\*{3,})\s*$/.test(line)) { close(); continue; }
+    close(); out.push(`<p>${inline(line)}</p>`);
+  }
+  close();
+  return out.join("");
+}
+
+/* ── Render final result ── */
+function renderResult(r) {
+  const byId = Object.fromEntries(r.sources.map((s) => [s.id, s]));
+  const order = [];
+  const citeFor = (id) => {
+    if (!byId[id]) return "";
+    if (!order.includes(id)) order.push(id);
+    const n = order.indexOf(id) + 1;
+    return `<a class="cite" href="#src-${id}" data-src="${id}" title="${esc(prettyName(byId[id].source))}">${n}</a>`;
+  };
+  const body = md(r.brief, citeFor);
+  const cited = order.length ? order.map((id) => byId[id]) : r.sources;
+
+  const pct = r.support_ratio != null ? Math.round(r.support_ratio * 100) : null;
+  const grounded = r.grounded
+    ? `<span class="badge good">${CHECK} Verified against sources${pct != null ? ` · ${pct}%` : ""}</span>`
+    : `<span class="badge warn">Partially verified${pct != null ? ` · ${pct}% supported` : ""}</span>`;
+  const revs = r.revisions_used ? `<span class="badge">${r.revisions_used} revision${r.revisions_used > 1 ? "s" : ""}</span>` : "";
+
+  $("#result").innerHTML = `
+    <article class="card">
+      <div class="result-head">
+        <div class="badges">${grounded}${revs}<span class="badge">${r.elapsed_s}s</span></div>
+        <button class="btn btn-ghost" id="copyBtn" type="button">Copy</button>
+      </div>
+      <div class="brief">${body}</div>
+      <div class="section">
+        <div class="section-title">Sources</div>
+        <div class="sources">${cited.map((s, i) => `
+          <div class="source" id="src-${s.id}">
+            <div class="source-num">${i + 1}</div>
+            <div style="min-width:0">
+              <div class="source-meta">
+                <span class="source-name">${esc(prettyName(s.source))}</span>
+                <span class="source-tag">${s.page ? `Page ${s.page}` : ""}${s.kind === "table" ? " · Table" : ""}</span>
+                <a href="/documents/${encodeURIComponent(s.source)}${s.page ? `#page=${s.page}` : ""}" target="_blank" rel="noopener">Open PDF ↗</a>
+              </div>
+              <div class="source-text">${esc(s.text.replace(/<[^>]+>/g, " ").replace(/^\[TABLE from [^\]]+\]\s*/, ""))}</div>
+            </div>
+          </div>`).join("")}
+        </div>
+      </div>
+      ${r.verification ? `
+      <div class="section">
+        <details class="verify"><summary>Web verification details</summary><pre>${esc(r.verification)}</pre></details>
+      </div>` : ""}
+    </article>`;
+
+  $("#copyBtn").onclick = async () => {
+    await navigator.clipboard.writeText(r.brief);
+    $("#copyBtn").textContent = "Copied";
+    setTimeout(() => ($("#copyBtn").textContent = "Copy"), 1500);
+  };
+  document.querySelectorAll(".cite").forEach((a) => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    const el = document.getElementById(`src-${a.dataset.src}`);
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("flash");
+    setTimeout(() => el.classList.remove("flash"), 1400);
+  }));
+}
+
+function renderLoading(label) {
+  $("#result").innerHTML = `
+    <div class="card loading">
+      <div class="loading-label"><span class="spinner"></span><span id="loadingLabel">${esc(label)}</span></div>
+      <div class="skeleton" style="width:55%"></div>
+      <div class="skeleton" style="width:92%"></div>
+      <div class="skeleton" style="width:85%"></div>
+      <div class="skeleton" style="width:70%"></div>
+    </div>`;
+}
+function renderError(msg) {
+  $("#result").innerHTML = `<div class="card error"><strong>Couldn't generate the briefing.</strong> ${esc(msg)}</div>`;
+}
+
+/* ── Ask ── */
+let timerId = null;
+async function ask(question) {
+  question = question.trim();
+  if (question.length < 3) { $("#question").focus(); return; }
+  $("#askBtn").disabled = true;
+  resetSteps();
+  setStep("researcher", "active", "Searching documents…");
+  renderLoading(ACTIVE_LABEL.researcher);
+  const t0 = Date.now();
+  clearInterval(timerId);
+  timerId = setInterval(() => ($("#timer").textContent = `${Math.round((Date.now() - t0) / 1000)}s`), 500);
+
+  try {
+    const res = await fetch("/brief/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) throw new Error(res.status === 422 ? "Please enter a longer question." : `Server error (${res.status}).`);
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "", done = false;
+    while (!done) {
+      const chunk = await reader.read();
+      done = chunk.done;
+      buf += dec.decode(chunk.value || new Uint8Array(), { stream: !done });
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      for (const line of lines) if (line.trim()) handleEvent(JSON.parse(line));
+    }
+  } catch (err) {
+    renderError(err.message || "Could not reach the server. Is it running?");
+    steps().forEach((el) => el.classList.contains("active") && setStep(el.dataset.node, "", ""));
+  } finally {
+    clearInterval(timerId);
+    $("#askBtn").disabled = false;
+  }
+}
+
+function handleEvent(ev) {
+  if (ev.type === "error") { renderError(ev.message); steps().forEach((el) => el.classList.contains("active") && setStep(el.dataset.node, "", "")); return; }
+  if (ev.type === "result") { renderResult(ev); return; }
+
+  const { node, next } = ev;
+  if (node === "researcher") setStep("researcher", "done", `Pass ${ev.pass} · ${ev.chunks} passages found`);
+  if (node === "fact_checker") ev.verification_skipped
+    ? setStep("fact_checker", "skipped", "Skipped (no web search key)")
+    : setStep("fact_checker", "done", "Claims checked");
+  if (node === "critic") {
+    const pct = ev.support_ratio != null ? `${Math.round(ev.support_ratio * 100)}% supported` : "";
+    if (next === "researcher") {
+      setStep("critic", "revise done", `${pct}. Sent back for revision`);
+      ["fact_checker", "critic"].forEach((n) => document.querySelector(`.step[data-node="${n}"]`).classList.remove("done", "skipped"));
+    } else {
+      setStep("critic", "done", ev.grounded ? `Approved · ${pct}` : `${pct} · revision limit reached`);
+    }
+  }
+  if (node === "finalize") setStep("finalize", "done", "Ready");
+  if (next) {
+    setStep(next, "active", next === "researcher" ? `Revising (pass ${ev.pass})…` : "Working…");
+    const label = document.getElementById("loadingLabel");
+    if (label) label.textContent = ACTIVE_LABEL[next];
+  }
+}
+
+$("#askForm").addEventListener("submit", (e) => { e.preventDefault(); ask($("#question").value); });
+$("#question").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask($("#question").value); }
+});
+document.querySelectorAll("#examples .chip").forEach((c) => c.addEventListener("click", () => {
+  $("#question").value = c.textContent;
+  ask(c.textContent);
+}));
+
+loadInfo();
+</script>
+</body>
+</html>
